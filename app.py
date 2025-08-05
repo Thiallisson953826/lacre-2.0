@@ -16,7 +16,7 @@ sigla = st.text_input("Sigla da Loja")
 emails_cadastrados = [
     "logistica@empresa.com",
     "supervisor@empresa.com",
-    "lacrescaixaazul@gmail.com"
+    "thiallisson@live.com"
 ]
 
 # Dropdown para selecionar e-mail
@@ -59,3 +59,4 @@ Hora: {datetime.now():%d/%m/%Y %H:%M:%S}
             st.success("E-mail enviado com sucesso!")
         except Exception as e:
             st.error(f"Erro ao enviar: {e}")
+
