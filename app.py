@@ -4,66 +4,66 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from datetime import datetime
 
-st.title("Coleta de Palete e Lacres")
+st.title("📦 Coleta de Palete e Lacres")
 
 # Campos de entrada
-palete = st.text_input("Palete")
-lacre1 = st.text_input("Lacre 1")
-lacre2 = st.text_input("Lacre 2")
-sigla = st.text_input("Sigla da Loja")
+sigla_loja = st.text_input("Loja para onde vai (Ex: TDC)")
+palete = st.text_input("Bipar o Palete (Ex: PL95382613)")
+lacres = st.text_input("Digitar os Lacres (separados por vírgula)")
 
-# Lista de e-mails com identificação (siglas)
+# Lista de e-mails com siglas para identificar melhor
 emails_identificados = {
     "TLC - thiallisson@live.com": "thiallisson@live.com",
     "EHC - eslandialia@hotmail.com": "eslandialia@hotmail.com",
     "WGC - Wolfman13690@gmail.com": "Wolfman13690@gmail.com",
     "EPA - Edvaldo.pereira@armazemparaiba.com.br": "Edvaldo.pereira@armazemparaiba.com.br",
     "LOG - logistica@empresa.com": "logistica@empresa.com",
-    "SUP - supervisor@empresa.com": "supervisor@empresa.com"
-    # Pode adicionar até 10 ou mais aqui sem problema
+    "SUP - supervisor@empresa.com": "supervisor@empresa.com",
+    "LAC - lacrescaixaazul@gmail.com": "lacrescaixaazul@gmail.com"
+    # Pode adicionar mais aqui tranquilamente
 }
 
-# Dropdown para selecionar o e-mail com identificação
-email_selecionado = st.selectbox("Escolha o e-mail para envio", list(emails_identificados.keys()))
-email_destino = emails_identificados[email_selecionado]  # Pega o e-mail real
+# Multiselect para escolher um ou mais e-mails
+emails_escolhidos = st.multiselect("Escolha os e-mails para envio", list(emails_identificados.keys()))
 
 # Botão para enviar
 if st.button("Enviar"):
-    if not (palete and lacre1 and lacre2 and sigla and email_destino):
-        st.warning("Preencha todos os campos!")
+    if not (sigla_loja and palete and lacres and emails_escolhidos):
+        st.warning("⚠️ Preencha todos os campos!")
     else:
-        # Pega credenciais do secrets
-        SMTP_SERVER = st.secrets["smtp_server"]
-        SMTP_PORT = st.secrets["smtp_port"]
-        USER = st.secrets["username"]
-        PASSWORD = st.secrets["password"]
+        try:
+            # Configurações do servidor
+            SMTP_SERVER = st.secrets["smtp_server"]
+            SMTP_PORT = st.secrets["smtp_port"]
+            USER = st.secrets["username"]
+            PASSWORD = st.secrets["password"]
 
-        # Monta o e-mail
-        msg = MIMEMultipart()
-        msg["Subject"] = f"Coleta {palete} - {sigla}"
-        msg["From"] = USER
-        msg["To"] = email_destino
+            # Converte os e-mails selecionados
+            lista_emails = [emails_identificados[e] for e in emails_escolhidos]
 
-        corpo = f"""
+            # Monta o e-mail
+            msg = MIMEMultipart()
+            msg["Subject"] = f"Coleta {palete} - {sigla_loja}"
+            msg["From"] = USER
+            msg["To"] = ", ".join(lista_emails)  # todos no "Para", ou use BCC se preferir
+
+            corpo = f"""
 Palete: {palete}
-Lacre 1: {lacre1}
-Lacre 2: {lacre2}
-Loja: {sigla}
-Hora: {datetime.now():%d/%m/%Y %H:%M:%S}
+Lacres: {lacres}
+Loja de destino: {sigla_loja}
+Data e hora do envio: {datetime.now():%d/%m/%Y %H:%M:%S}
 """
 
-        msg.attach(MIMEText(corpo, "plain"))
+            msg.attach(MIMEText(corpo, "plain"))
 
-        # Envia
-        try:
+            # Envia o e-mail
             server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT)
             server.starttls()
             server.login(USER, PASSWORD)
-            server.sendmail(USER, email_destino, msg.as_string())
+            server.sendmail(USER, lista_emails, msg.as_string())
             server.quit()
-            st.success("E-mail enviado com sucesso!")
+
+            st.success("✅ E-mail enviado com sucesso!")
         except Exception as e:
-            st.error(f"Erro ao enviar: {e}")
-
-
+            st.error(f"❌ Erro ao enviar: {e}")
 
