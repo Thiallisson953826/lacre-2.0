@@ -57,8 +57,6 @@ if st.session_state.etapa == 4:
     }
 
     st.subheader("📧 E-mails de destino")
-
-    # Seleção de e-mails da lista
     emails_destino = st.multiselect("Escolha os e-mails da lista", options=list(email_opcoes.keys()))
 
     # Campo para adicionar e-mails extras
@@ -68,15 +66,23 @@ if st.session_state.etapa == 4:
             if novo_email not in st.session_state.emails_adicionais:
                 st.session_state.emails_adicionais.append(novo_email)
                 st.success(f"✅ E-mail adicionado: {novo_email}")
-                st.session_state.email_livre = ""
+                if "email_livre" in st.session_state:
+                    st.session_state.email_livre = ""
                 st.experimental_rerun()
         else:
             st.error("❌ E-mail inválido. Verifique e tente novamente.")
 
-    # Exibe e-mails manuais adicionados
+    # Mostrar e-mails manuais adicionados
     if st.session_state.emails_adicionais:
         st.write("📌 E-mails manuais adicionados:")
         for e in st.session_state.emails_adicionais:
+            st.write(f"• {e}")
+
+    # Mostrar lista final de e-mails
+    emails_real = [email_opcoes[nome] for nome in emails_destino] + st.session_state.emails_adicionais
+    if emails_real:
+        st.write("📬 Lista final de e-mails que receberão a coleta:")
+        for e in emails_real:
             st.write(f"• {e}")
 
     # Botão de envio
@@ -84,11 +90,8 @@ if st.session_state.etapa == 4:
         loja = st.session_state.get("loja", "").strip()
         palete = st.session_state.get("palete", "").strip()
         lacres_raw = st.session_state.get("lacres", "")
-
         lacre_list = [l.strip() for l in lacres_raw.replace('\n', ',').split(',') if l.strip()]
         lacre_unicos = list(dict.fromkeys(lacre_list))
-
-        emails_real = [email_opcoes[nome] for nome in emails_destino] + st.session_state.emails_adicionais
 
         if not emails_real:
             st.warning("⚠️ Nenhum e-mail selecionado ou digitado!")
@@ -109,7 +112,6 @@ if st.session_state.etapa == 4:
 🏬 Loja: {loja}
 🕒 Data/Hora: {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}
 """
-
             msg.attach(MIMEText(corpo, "plain"))
 
             try:
@@ -119,6 +121,14 @@ if st.session_state.etapa == 4:
                 server.sendmail(USER, emails_real, msg.as_string())
                 server.quit()
                 st.success("✅ E-mail enviado com sucesso!")
+
+                # Limpa os dados após envio
+                st.session_state.etapa = 1
                 st.session_state.emails_adicionais = []
+                st.session_state.loja_input = ""
+                st.session_state.palete_input = ""
+                st.session_state.lacres_input = ""
             except Exception as e:
                 st.error(f"❌ Erro ao enviar: {e}")
+
+
