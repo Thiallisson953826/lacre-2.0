@@ -13,6 +13,10 @@ if "emails" not in st.session_state:
     st.session_state.emails = []
 if "show_email_input" not in st.session_state:
     st.session_state.show_email_input = False
+if "loja_input" not in st.session_state:
+    st.session_state.loja_input = ""
+if "palete_input" not in st.session_state:
+    st.session_state.palete_input = ""
 
 # --------- BARRA LATERAL DE E-MAILS ---------
 with st.sidebar:
@@ -39,11 +43,19 @@ st.title("📦 Coleta por Palete")
 
 # Etapa 1: Digitar loja
 if st.session_state.etapa == 1:
-    loja = st.text_input("Digite a Loja", key="loja_input", on_change=lambda: st.session_state.update({"loja": st.session_state.loja_input, "etapa": 2}))
+    loja = st.text_input("Digite a Loja", key="loja_input")
+    if loja:
+        st.session_state.loja = loja
+        st.session_state.etapa = 2
+        st.experimental_rerun()
 
 # Etapa 2: Digitar palete
 elif st.session_state.etapa == 2:
-    palete = st.text_input("Bipar Palete", key="palete_input", on_change=lambda: st.session_state.update({"palete": st.session_state.palete_input, "etapa": 3}))
+    palete = st.text_input("Bipar Palete", key="palete_input")
+    if palete:
+        st.session_state.palete = palete
+        st.session_state.etapa = 3
+        st.experimental_rerun()
 
 # Etapa 3: Bipar lacres
 elif st.session_state.etapa == 3:
@@ -76,3 +88,7 @@ elif st.session_state.etapa == 3:
             st.session_state.lacres = []
             st.session_state.emails = []
             st.session_state.show_email_input = False
+            st.session_state.loja_input = ""
+            st.session_state.palete_input = ""
+            st.experimental_rerun()
+
