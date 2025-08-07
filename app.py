@@ -8,7 +8,7 @@ st.set_page_config(page_title="Coleta por Palete - Envio por E-mail")
 
 st.title("📦 Coleta por Palete e Lacres")
 
-# Inicializa a lista de lacres na sessão
+# Inicializa a lista de lacres
 if "lacres" not in st.session_state:
     st.session_state.lacres = []
 
@@ -16,20 +16,21 @@ if "lacres" not in st.session_state:
 sigla_loja = st.text_input("Loja para onde vai (Ex: TDC)")
 palete = st.text_input("Bipar o Palete (Ex: PL95382613)")
 
-# Formulário para bipar lacres
-with st.form("form_lacre"):
-    novo_lacre = st.text_input("Bipar Lacre (um por vez)")
-    adicionar = st.form_submit_button("Adicionar Lacre")
+# BIPAR LACRE
+novo_lacre = st.text_input("Bipar Lacre (um por vez)", key="input_lacre")
 
-    if adicionar and novo_lacre:
-        if novo_lacre not in st.session_state.lacres:
-            st.session_state.lacres.append(novo_lacre)
+# Valida e adiciona lacre automaticamente
+if novo_lacre:
+    if novo_lacre not in st.session_state.lacres:
+        st.session_state.lacres.append(novo_lacre)
+    # Limpa o campo para o próximo bip
+    st.experimental_rerun()
 
-# Exibe os lacres bipados em uma linha
+# Exibe os lacres separados por vírgula
 lacres_formatados = ", ".join(st.session_state.lacres)
 st.text_area("Lacres bipados", value=lacres_formatados, height=100, disabled=True)
 
-# Lista de e-mails com siglas
+# E-mails
 emails_identificados = {
     "TLC - thiallisson@live.com": "thiallisson@live.com",
     "EHC - eslandialia@hotmail.com": "eslandialia@hotmail.com",
@@ -40,10 +41,9 @@ emails_identificados = {
     "LAC - lacrescaixaazul@gmail.com": "lacrescaixaazul@gmail.com"
 }
 
-# Seleção de múltiplos e-mails
 emails_escolhidos = st.multiselect("Escolha os e-mails para envio", list(emails_identificados.keys()))
 
-# Botão de enviar
+# Botão enviar
 if st.button("Enviar"):
     if not (sigla_loja and palete and st.session_state.lacres and emails_escolhidos):
         st.warning("⚠️ Preencha todos os campos e bipar pelo menos um lacre!")
@@ -76,7 +76,6 @@ Data e hora do envio: {datetime.now():%d/%m/%Y %H:%M:%S}
             server.quit()
 
             st.success("✅ E-mail enviado com sucesso!")
-            st.session_state.lacres = []  # Limpa os lacres depois de enviar
+            st.session_state.lacres = []
         except Exception as e:
             st.error(f"❌ Erro ao enviar: {e}")
-
