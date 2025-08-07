@@ -1,52 +1,58 @@
 import streamlit as st
+import re
 
-st.set_page_config(page_title="📦 Coleta por Palete", layout="wide")
+st.set_page_config(page_title="📦 Coleta por Palete - Envio por E-mail", layout="wide")
 
-# ---------- BOTÃO FIXO NO CANTO SUPERIOR ESQUERDO ----------
-with st.sidebar:
-    st.markdown("### 📧 Lista de E-mails")
-    if st.button("➕ Adicionar E-mail"):
-        st.session_state.show_email_form = True  # Abre o formulário
+# Inicializa session_state para lista de e-mails
+if "emails_adicionais" not in st.session_state:
+    st.session_state.emails_adicionais = []
 
-# ---------- FORMULÁRIO PARA ADICIONAR E-MAIL ----------
-if st.session_state.get("show_email_form"):
-    with st.sidebar:
-        novo_email = st.text_input("Digite o novo e-mail", key="input_email")
-        if st.button("Salvar E-mail"):
-            if novo_email:
-                # Armazena a lista de e-mails
-                if "emails" not in st.session_state:
-                    st.session_state.emails = []
-                st.session_state.emails.append(novo_email)
-                st.success(f"E-mail adicionado: {novo_email}")
-                st.session_state.show_email_form = False
-                st.session_state.input_email = ""
-                st.experimental_rerun()
-            else:
-                st.warning("Digite um e-mail válido.")
+# Função para adicionar e-mail
+def adicionar_email():
+    novo_email = st.session_state.get("novo_email_input", "")
+    if re.match(r"[^@]+@[^@]+\.[^@]+", novo_email):
+        if novo_email not in st.session_state.emails_adicionais:
+            st.session_state.emails_adicionais.append(novo_email)
+            st.success(f"E-mail adicionado: {novo_email}")
+            st.session_state.novo_email_input = ""  # Limpa o campo
+        else:
+            st.warning("Este e-mail já foi adicionado.")
+    else:
+        st.error("E-mail inválido.")
 
-# ---------- EXIBIR LISTA DE E-MAILS SALVOS ----------
-with st.sidebar:
-    if "emails" in st.session_state and st.session_state.emails:
-        st.markdown("#### 📃 E-mails cadastrados:")
-        for email in st.session_state.emails:
-            st.markdown(f"- {email}")
+# ---------------------------
+# 🔼 FIXO EM TODAS AS TELAS
+# ---------------------------
+with st.container():
+    st.markdown("### ✉️ Adicionar E-mail")
+    col1, col2 = st.columns([4, 1])
+    with col1:
+        st.text_input("Digite o e-mail", key="novo_email_input", label_visibility="collapsed")
+    with col2:
+        st.button("➕ Adicionar E-mail", on_click=adicionar_email, use_container_width=True)
 
-# ---------- INPUT DE LOJA ----------
+    # Lista de e-mails
+    if st.session_state.emails_adicionais:
+        st.markdown("**E-mails adicionados:**")
+        for i, email in enumerate(st.session_state.emails_adicionais, 1):
+            st.write(f"{i}. {email}")
+# ---------------------------
+
+# AQUI CONTINUA O RESTANTE DO TEU APP 👇
+
 st.title("📦 Coleta por Palete - Envio por E-mail")
 
-loja = st.text_input("Digite o número da loja e pressione ENTER", key="loja_input")
+# Campo para bipar o palete
+palete = st.text_input("Bipar Palete")
 
-# ---------- SE TIVER LOJA, MOSTRA O QUE FOR NECESSÁRIO ----------
-if loja:
-    st.success(f"Loja selecionada: {loja}")
-    # Aqui você pode colocar o restante do fluxo do app
-    # Exemplo: campos para bipar palete, lacre, enviar e-mail etc.
-    palete = st.text_input("📦 Bipar Palete")
-    lacre_1 = st.text_input("🔐 Lacre 1")
-    lacre_2 = st.text_input("🔐 Lacre 2")
-    if st.button("📨 Enviar por e-mail"):
-        if st.session_state.get("emails"):
-            st.success("E-mail enviado com sucesso!")
-        else:
-            st.error("Nenhum e-mail cadastrado.")
+# Campo para digitar o Lacre 1
+lacre1 = st.text_input("Lacre 1")
+
+# Campo para digitar o Lacre 2
+lacre2 = st.text_input("Lacre 2")
+
+# Simulação de envio (exemplo)
+if st.button("Enviar Palete"):
+    st.success("Palete enviado com sucesso!")
+
+# AQUI ENTRARIA TODO O RESTO DO TEU PROCESSO...
