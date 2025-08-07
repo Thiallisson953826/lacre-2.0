@@ -16,15 +16,14 @@ if "lacres" not in st.session_state:
 sigla_loja = st.text_input("Loja para onde vai (Ex: TDC)")
 palete = st.text_input("Bipar o Palete (Ex: PL95382613)")
 
-# Campo para bipar lacre individual
-novo_lacre = st.text_input("Bipar Lacre (pressione Enter para adicionar)")
+# Formulário para bipar lacres
+with st.form("form_lacre"):
+    novo_lacre = st.text_input("Bipar Lacre (um por vez)")
+    adicionar = st.form_submit_button("Adicionar Lacre")
 
-# Se um novo lacre foi digitado
-if novo_lacre:
-    if novo_lacre not in st.session_state.lacres:
-        st.session_state.lacres.append(novo_lacre)
-    # Limpa o campo após bipar
-    st.experimental_rerun()
+    if adicionar and novo_lacre:
+        if novo_lacre not in st.session_state.lacres:
+            st.session_state.lacres.append(novo_lacre)
 
 # Exibe os lacres bipados em uma linha
 lacres_formatados = ", ".join(st.session_state.lacres)
