@@ -11,28 +11,40 @@ st.title("📦 Coleta de Palete e Lacres")
 if "etapa" not in st.session_state:
     st.session_state.etapa = 1
 
+# Funções para mudança de etapa automática
+def avancar_etapa_1():
+    if st.session_state.loja_input.strip():
+        st.session_state.loja = st.session_state.loja_input.strip()
+        st.session_state.etapa = 2
+
+def avancar_etapa_2():
+    if st.session_state.palete_input.strip():
+        st.session_state.palete = st.session_state.palete_input.strip()
+        st.session_state.etapa = 3
+
 # Etapa 1: Loja
 if st.session_state.etapa == 1:
-    loja = st.text_input("Digite a Loja", key="loja_input")
-    if loja and st.button("Confirmar Loja"):
-        st.session_state.loja = loja
-        st.session_state.etapa = 2
+    st.text_input("Digite a Loja e aperte ENTER", key="loja_input", on_change=avancar_etapa_1)
 
 # Etapa 2: Palete
 elif st.session_state.etapa == 2:
-    palete = st.text_input("Bipar Palete", key="palete_input")
-    if palete and st.button("Confirmar Palete"):
-        st.session_state.palete = palete
-        st.session_state.etapa = 3
+    st.text_input("Bipar Palete e aperte ENTER", key="palete_input", on_change=avancar_etapa_2)
 
-# Etapa 3: Lacres
+# Etapa 3: Lacres com validação imediata
 elif st.session_state.etapa == 3:
-    lacres = st.text_area("Bipar os Lacres (um por linha ou separados por vírgula)", key="lacres_input")
-    if lacres and st.button("Confirmar Lacres"):
-        st.session_state.lacres = lacres
-        st.session_state.etapa = 4
+    lacres_input = st.text_area("Bipar os Lacres (um por linha ou separados por vírgula)", key="lacres_input")
 
-# Etapa final: E-mails e Envio
+    if lacres_input:
+        lacre_list = [l.strip() for l in lacres_input.replace('\n', ',').split(',') if l.strip()]
+        lacre_unicos = list(dict.fromkeys(lacre_list))
+
+        if len(lacre_list) != len(lacre_unicos):
+            st.error("⚠️ Existem lacres duplicados! Remova os repetidos antes de continuar.")
+        else:
+            st.session_state.lacres = lacres_input
+            st.session_state.etapa = 4
+
+# Etapa final: Envio do e-mail
 if st.session_state.etapa == 4:
     email_opcoes = {
         "TLC - thiallisson@live.com": "thiallisson@live.com",
@@ -46,27 +58,12 @@ if st.session_state.etapa == 4:
     if st.button("Enviar"):
         loja = st.session_state.get("loja", "").strip()
         palete = st.session_state.get("palete", "").strip()
-        lacres_raw = st.session_state.get("lacres", "")
+        lacres_raw = st.session_state.get("lacre_input", st.session_state.get("lacres", ""))
 
-        # Separar e limpar lacres
-        lacre_list = []
-        for item in lacres_raw.replace('\n', ',').split(','):
-            cod = item.strip()
-            if cod:
-                lacre_list.append(cod)
+        lacre_list = [l.strip() for l in lacres_raw.replace('\n', ',').split(',') if l.strip()]
+        lacre_unicos = list(dict.fromkeys(lacre_list))
 
-        # Verificar lacres duplicados
-        lacre_unicos = list(dict.fromkeys(lacre_list))  # Remove duplicados mantendo a ordem
-
-        if not loja:
-            st.warning("⚠️ Loja não preenchida!")
-        elif not palete:
-            st.warning("⚠️ Palete não preenchido!")
-        elif not lacre_list:
-            st.warning("⚠️ Lacres não preenchidos!")
-        elif len(lacre_list) != len(lacre_unicos):
-            st.warning("⚠️ Existem lacres duplicados! Remova os repetidos.")
-        elif not emails_destino:
+        if not emails_destino:
             st.warning("⚠️ Nenhum e-mail selecionado!")
         else:
             SMTP_SERVER = st.secrets["smtp_server"]
