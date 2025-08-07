@@ -19,8 +19,7 @@ emails_identificados = {
     "WGC - Wolfman13690@gmail.com": "Wolfman13690@gmail.com",
     "EPA - Edvaldo.pereira@armazemparaiba.com.br": "Edvaldo.pereira@armazemparaiba.com.br",
     "LOG - logistica@empresa.com": "logistica@empresa.com",
-    "SUP - supervisor@empresa.com": "supervisor@empresa.com",
-    "LAC - lacrescaixaazul@gmail.com": "lacrescaixaazul@gmail.com"
+    "SUP - supervisor@empresa.com": "supervisor@empresa.com"
     # Pode adicionar até 10 ou mais aqui sem problema
 }
 
@@ -65,5 +64,6 @@ Hora: {datetime.now():%d/%m/%Y %H:%M:%S}
             st.success("E-mail enviado com sucesso!")
         except Exception as e:
             st.error(f"Erro ao enviar: {e}")
+
 
 
