@@ -1,58 +1,128 @@
 import streamlit as st
 import re
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from datetime import datetime
 
-st.set_page_config(page_title="📦 Coleta por Palete - Envio por E-mail", layout="wide")
+st.set_page_config(page_title="📦 Coleta por Palete")
+st.title("📦 Coleta de Palete e Lacres")
 
-# Inicializa session_state para lista de e-mails
+# Inicializa variáveis de estado
+if "etapa" not in st.session_state:
+    st.session_state.etapa = 1
 if "emails_adicionais" not in st.session_state:
     st.session_state.emails_adicionais = []
 
-# Função para adicionar e-mail
-def adicionar_email():
-    novo_email = st.session_state.get("novo_email_input", "")
-    if re.match(r"[^@]+@[^@]+\.[^@]+", novo_email):
-        if novo_email not in st.session_state.emails_adicionais:
-            st.session_state.emails_adicionais.append(novo_email)
-            st.success(f"E-mail adicionado: {novo_email}")
-            st.session_state.novo_email_input = ""  # Limpa o campo
+# Funções para avanço de etapa automático
+def avancar_etapa_1():
+    if st.session_state.loja_input.strip():
+        st.session_state.loja = st.session_state.loja_input.strip()
+        st.session_state.etapa = 2
+
+def avancar_etapa_2():
+    if st.session_state.palete_input.strip():
+        st.session_state.palete = st.session_state.palete_input.strip()
+        st.session_state.etapa = 3
+
+# Etapa 1: Loja
+if st.session_state.etapa == 1:
+    st.text_input("Digite a Loja e aperte ENTER", key="loja_input", on_change=avancar_etapa_1)
+
+# Etapa 2: Palete
+elif st.session_state.etapa == 2:
+    st.text_input("Bipar Palete e aperte ENTER", key="palete_input", on_change=avancar_etapa_2)
+
+# Etapa 3: Lacres com validação
+elif st.session_state.etapa == 3:
+    lacres_input = st.text_area("Bipar os Lacres (um por linha ou separados por vírgula)", key="lacres_input")
+
+    if lacres_input:
+        lacre_list = [l.strip() for l in lacres_input.replace('\n', ',').split(',') if l.strip()]
+        lacre_unicos = list(dict.fromkeys(lacre_list))
+
+        if len(lacre_list) != len(lacre_unicos):
+            st.error("⚠️ Existem lacres duplicados! Remova os repetidos antes de continuar.")
         else:
-            st.warning("Este e-mail já foi adicionado.")
-    else:
-        st.error("E-mail inválido.")
+            st.session_state.lacres = lacres_input
+            st.session_state.etapa = 4
 
-# ---------------------------
-# 🔼 FIXO EM TODAS AS TELAS
-# ---------------------------
-with st.container():
-    st.markdown("### ✉️ Adicionar E-mail")
-    col1, col2 = st.columns([4, 1])
-    with col1:
-        st.text_input("Digite o e-mail", key="novo_email_input", label_visibility="collapsed")
-    with col2:
-        st.button("➕ Adicionar E-mail", on_click=adicionar_email, use_container_width=True)
+# Etapa final: Envio de e-mails
+if st.session_state.etapa == 4:
+    email_opcoes = {
+        "TLC - thiallisson@live.com": "thiallisson@live.com",
+        "EHC - eslandialia@hotmail.com": "eslandialia@hotmail.com",
+        "WGC - Wolfman13690@gmail.com": "Wolfman13690@gmail.com",
+        "EPA - Edvaldo.pereira@armazemparaiba.com.br": "Edvaldo.pereira@armazemparaiba.com.br"
+    }
 
-    # Lista de e-mails
+    st.subheader("📧 E-mails de destino")
+
+    # Seleção padrão
+    emails_destino = st.multiselect("Escolha os e-mails da lista", options=list(email_opcoes.keys()))
+
+    # Campo para adicionar e-mails extras
+    novo_email = st.text_input("Ou digite um e-mail manualmente e aperte ENTER", key="email_livre")
+    if novo_email:
+        if re.match(r"[^@]+@[^@]+\.[^@]+", novo_email):
+            if novo_email not in st.session_state.emails_adicionais:
+                st.session_state.emails_adicionais.append(novo_email)
+                st.success(f"✅ E-mail adicionado: {novo_email}")
+                st.session_state.email_livre = ""
+                st.experimental_rerun()
+        else:
+            st.error("❌ E-mail inválido. Verifique e tente novamente.")
+
     if st.session_state.emails_adicionais:
-        st.markdown("**E-mails adicionados:**")
-        for i, email in enumerate(st.session_state.emails_adicionais, 1):
-            st.write(f"{i}. {email}")
-# ---------------------------
+        st.write("📌 E-mails manuais adicionados:")
+        for e in st.session_state.emails_adicionais:
+            st.write(f"• {e}")
 
-# AQUI CONTINUA O RESTANTE DO TEU APP 👇
+    if st.button("Enviar"):
+        loja = st.session_state.get("loja", "").strip()
+        palete = st.session_state.get("palete", "").strip()
+        lacres_raw = st.session_state.get("lacres", "")
 
-st.title("📦 Coleta por Palete - Envio por E-mail")
+        lacre_list = [l.strip() for l in lacres_raw.replace('\n', ',').split(',') if l.strip()]
+        lacre_unicos = list(dict.fromkeys(lacre_list))
 
-# Campo para bipar o palete
-palete = st.text_input("Bipar Palete")
+        # E-mails finais
+        emails_real = [email_opcoes[nome] for nome in emails_destino] + st.session_state.emails_adicionais
 
-# Campo para digitar o Lacre 1
-lacre1 = st.text_input("Lacre 1")
+        if not emails_real:
+            st.warning("⚠️ Nenhum e-mail selecionado ou digitado!")
+        else:
+            SMTP_SERVER = st.secrets["smtp_server"]
+            SMTP_PORT = st.secrets["smtp_port"]
+            USER = st.secrets["username"]
+            PASSWORD = st.secrets["password"]
 
-# Campo para digitar o Lacre 2
-lacre2 = st.text_input("Lacre 2")
+            msg = MIMEMultipart()
+            msg["Subject"] = f"Coleta {palete} - {loja}"
+            msg["From"] = USER
+            msg["To"] = ", ".join(emails_real)
 
-# Simulação de envio (exemplo)
-if st.button("Enviar Palete"):
-    st.success("Palete enviado com sucesso!")
+            corpo = f"""
+📦 Palete: {palete}
+🔒 Lacres: {', '.join(lacre_unicos)}
+🏬 Loja: {loja}
+🕒 Data/Hora: {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}
+"""
 
-# AQUI ENTRARIA TODO O RESTO DO TEU PROCESSO...
+            msg.attach(MIMEText(corpo, "plain"))
+
+            try:
+                server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT)
+                server.starttls()
+                server.login(USER, PASSWORD)
+                server.sendmail(USER, emails_real, msg.as_string())
+                server.quit()
+                st.success("✅ E-mail enviado com sucesso!")
+                # Limpa os dados após envio
+                st.session_state.etapa = 1
+                st.session_state.emails_adicionais = []
+                st.session_state.loja_input = ""
+                st.session_state.palete_input = ""
+                st.session_state.lacres_input = ""
+            except Exception as e:
+                st.error(f"❌ Erro ao enviar: {e}")
