@@ -5,39 +5,42 @@ from email.mime.text import MIMEText
 # Configurações do servidor SMTP (Gmail)
 SMTP_SERVER = "smtp.gmail.com"
 SMTP_PORT = 587
-USERNAME = "lacrescaixazul@gmail.com"
+USERNAME = "lacrescaixaazul@gmail.com"
 PASSWORD = "rslzwudhmedqolqo"
 
 st.title("📦 Coleta por Palete - Envio por E-mail")
 
-# Lista de e-mails disponíveis
+# Lista fixa de e-mails disponíveis
 emails_disponiveis = [
-    "destinatario1@gmail.com",
-    "destinatario2@gmail.com",
-    "destinatario3@gmail.com",
-    "thiallisson@live.com"
+    "thiallisson@live.com",
+    "eslandialia@hotmail.com",
+    "Wolfman13690@gmail.com",
+    "Edvaldo.pereira@armazemparaiba.com.br"
 ]
 
-# Seleção de múltiplos e-mails
-destinatarios = st.multiselect("Selecione os destinatários:", emails_disponiveis)
+# Seleção dos e-mails permitidos
+destinatarios = st.multiselect(
+    "Selecione os destinatários:",
+    options=emails_disponiveis
+)
 
 assunto = st.text_input("Assunto")
 mensagem = st.text_area("Mensagem")
 
 if st.button("Enviar E-mail"):
     if not destinatarios:
-        st.error("Selecione pelo menos um destinatário.")
+        st.error("Você deve selecionar pelo menos um destinatário.")
     elif not assunto or not mensagem:
-        st.error("Preencha o assunto e a mensagem.")
+        st.error("Assunto e mensagem são obrigatórios.")
     else:
         try:
-            # Configura o e-mail
+            # Criação da mensagem
             msg = MIMEText(mensagem)
             msg["Subject"] = assunto
             msg["From"] = USERNAME
             msg["To"] = ", ".join(destinatarios)
 
-            # Envia
+            # Envio do e-mail
             with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
                 server.starttls()
                 server.login(USERNAME, PASSWORD)
@@ -46,4 +49,4 @@ if st.button("Enviar E-mail"):
             st.success(f"E-mail enviado com sucesso para: {', '.join(destinatarios)}")
 
         except Exception as e:
-            st.error(f"Erro ao enviar: {e}")
+            st.error(f"Erro ao enviar e-mail: {e}")
