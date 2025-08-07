@@ -13,29 +13,33 @@ if "etapa" not in st.session_state:
 
 # Etapa 1: Loja
 if st.session_state.etapa == 1:
-    loja = st.text_input("Digite a Loja e aperte ENTER", key="loja_input")
+    loja = st.text_input("Digite a Loja", key="loja_input")
     if loja:
-        st.session_state.loja = loja
-        st.session_state.etapa = 2
-        st.experimental_rerun()
+        if st.button("Confirmar Loja"):
+            st.session_state.loja = loja
+            st.session_state.etapa = 2
+            st.experimental_rerun()
 
 # Etapa 2: Palete
 elif st.session_state.etapa == 2:
-    palete = st.text_input("Bipar Palete e aperte ENTER", key="palete_input")
+    palete = st.text_input("Bipar Palete", key="palete_input")
     if palete:
-        st.session_state.palete = palete
-        st.session_state.etapa = 3
-        st.experimental_rerun()
+        if st.button("Confirmar Palete"):
+            st.session_state.palete = palete
+            st.session_state.etapa = 3
+            st.experimental_rerun()
 
 # Etapa 3: Lacres
 elif st.session_state.etapa == 3:
     lacres = st.text_area("Bipar os Lacres (um por linha ou separados por vírgula)", key="lacres_input")
     if lacres:
-        st.session_state.lacres = lacres
+        if st.button("Confirmar Lacres"):
+            st.session_state.lacres = lacres
+            st.session_state.etapa = 4
+            st.experimental_rerun()
 
 # Etapa final: E-mails e Envio
-if st.session_state.etapa >= 3:
-    # Lista de e-mails
+if st.session_state.etapa == 4:
     email_opcoes = {
         "TLC - thiallisson@live.com": "thiallisson@live.com",
         "EHC - eslandialia@hotmail.com": "eslandialia@hotmail.com",
@@ -45,7 +49,6 @@ if st.session_state.etapa >= 3:
 
     emails_destino = st.multiselect("Escolha os e-mails para envio", options=list(email_opcoes.keys()))
 
-    # Botão de envio
     if st.button("Enviar"):
         loja = st.session_state.get("loja", "").strip()
         palete = st.session_state.get("palete", "").strip()
@@ -72,7 +75,6 @@ if st.session_state.etapa >= 3:
         elif not emails_destino:
             st.warning("⚠️ Nenhum e-mail selecionado!")
         else:
-            # Enviar e-mail
             SMTP_SERVER = st.secrets["smtp_server"]
             SMTP_PORT = st.secrets["smtp_port"]
             USER = st.secrets["username"]
