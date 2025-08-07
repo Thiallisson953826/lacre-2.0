@@ -9,17 +9,19 @@ st.title("📦 Coleta de Palete e Lacres")
 if "etapa" not in st.session_state:
     st.session_state.etapa = 1
 
-def proxima_etapa(etapa):
-    st.session_state.etapa = etapa
-    st.experimental_rerun()
+# Funções de mudança de etapa
+def etapa_2():
+    st.session_state.etapa = 2
+
+def etapa_3():
+    st.session_state.etapa = 3
 
 # Etapa 1: Loja
 if st.session_state.etapa == 1:
     st.text_input(
         "Digite a Loja e aperte ENTER", 
         key="loja", 
-        on_change=proxima_etapa, 
-        args=(2,)
+        on_change=etapa_2
     )
 
 # Etapa 2: Palete
@@ -27,8 +29,7 @@ elif st.session_state.etapa == 2:
     st.text_input(
         "Bipar Palete e aperte ENTER", 
         key="palete", 
-        on_change=proxima_etapa, 
-        args=(3,)
+        on_change=etapa_3
     )
 
 # Etapa 3: Lacres
