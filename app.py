@@ -14,29 +14,23 @@ if "etapa" not in st.session_state:
 # Etapa 1: Loja
 if st.session_state.etapa == 1:
     loja = st.text_input("Digite a Loja", key="loja_input")
-    if loja:
-        if st.button("Confirmar Loja"):
-            st.session_state.loja = loja
-            st.session_state.etapa = 2
-            st.experimental_rerun()
+    if loja and st.button("Confirmar Loja"):
+        st.session_state.loja = loja
+        st.session_state.etapa = 2
 
 # Etapa 2: Palete
 elif st.session_state.etapa == 2:
     palete = st.text_input("Bipar Palete", key="palete_input")
-    if palete:
-        if st.button("Confirmar Palete"):
-            st.session_state.palete = palete
-            st.session_state.etapa = 3
-            st.experimental_rerun()
+    if palete and st.button("Confirmar Palete"):
+        st.session_state.palete = palete
+        st.session_state.etapa = 3
 
 # Etapa 3: Lacres
 elif st.session_state.etapa == 3:
     lacres = st.text_area("Bipar os Lacres (um por linha ou separados por vírgula)", key="lacres_input")
-    if lacres:
-        if st.button("Confirmar Lacres"):
-            st.session_state.lacres = lacres
-            st.session_state.etapa = 4
-            st.experimental_rerun()
+    if lacres and st.button("Confirmar Lacres"):
+        st.session_state.lacres = lacres
+        st.session_state.etapa = 4
 
 # Etapa final: E-mails e Envio
 if st.session_state.etapa == 4:
