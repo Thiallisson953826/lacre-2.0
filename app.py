@@ -8,25 +8,27 @@ st.set_page_config(page_title="Coleta por Palete - Envio por E-mail")
 
 st.title("📦 Coleta por Palete e Lacres")
 
-# Inicializa a lista de lacres
+# Inicializa variáveis de sessão
 if "lacres" not in st.session_state:
     st.session_state.lacres = []
+if "novo_lacre" not in st.session_state:
+    st.session_state.novo_lacre = ""
+
+# Função para limpar o campo após bipar
+def adicionar_lacre():
+    novo = st.session_state.novo_lacre.strip()
+    if novo and novo not in st.session_state.lacres:
+        st.session_state.lacres.append(novo)
+    st.session_state.novo_lacre = ""  # Limpa o campo
 
 # Campos principais
 sigla_loja = st.text_input("Loja para onde vai (Ex: TDC)")
 palete = st.text_input("Bipar o Palete (Ex: PL95382613)")
 
-# BIPAR LACRE
-novo_lacre = st.text_input("Bipar Lacre (um por vez)", key="input_lacre")
+# Campo do lacre que dispara ação ao alterar
+st.text_input("Bipar Lacre (um por vez)", key="novo_lacre", on_change=adicionar_lacre)
 
-# Valida e adiciona lacre automaticamente
-if novo_lacre:
-    if novo_lacre not in st.session_state.lacres:
-        st.session_state.lacres.append(novo_lacre)
-    # Limpa o campo para o próximo bip
-    st.experimental_rerun()
-
-# Exibe os lacres separados por vírgula
+# Exibe lacres formatados
 lacres_formatados = ", ".join(st.session_state.lacres)
 st.text_area("Lacres bipados", value=lacres_formatados, height=100, disabled=True)
 
